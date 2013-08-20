@@ -10,6 +10,9 @@ module.exports = {
 	data: undefined,
 	totalWaste: undefined,
 	capacity: undefined,
+	toExcel: [],
+	isOpt: false,
+	// objMax: [-1, -1, -1, -1],
 
 	importData: function(size) {
 		this.data = dataUtil.getData(size);
@@ -20,45 +23,38 @@ module.exports = {
 
 	initPop: function(popSize, size) {
 		var initChromosome = IMPACT.init(),
-			ranChromosome = IMPACT.ran(),
-			c1,
-			c2,
+			r,
+			c,
 			i = 0;
-		this.seqLen = IMPACT.getSeqLen();
-		this.pop = [];
-		this.pop.push({
-			c: initChromosome,
-			f: this.calFitness(initChromosome, true)
-		});
-// console.log(this.pop[0].f);
-		this.pop.push({
-			c: ranChromosome,
-			f: this.calFitness(ranChromosome)
-		})
-		while (++i < popSize) {
-			c1 = copyC(initChromosome),
-			c2 = copyC(ranChromosome),
-			go.crossover(c1, c2, this.seqLen, size);
-			go.mutation(c1, this.seqLen, size);
-			go.mutation(c2, this.seqLen, size);
 
+		this.seqLen = IMPACT.getSeqLen();
+		this.isOpt = IMPACT.getIsOpt();
+		
+		this.pop = [];
+		for (; i < popSize; i++) {
+			r = Math.floor(Math.random() * popSize);
+			c = copyC(initChromosome[r]);
+			// go.mutation(c, this.seqLen, size, isOpt);
 			this.pop.push({
-				c: copyC(c1),
-				f: this.calFitness(c1)
-			});
-			if (this.pop.length >= popSize) break;
-			this.pop.push({
-				c: copyC(c2),
-				f: this.calFitness(c2)
+				c: copyC(c),
+				f: this.calFitness(c)
 			});
 		}
+
+		this.paretoOpt();
 
 		return this;
 	},
 
 	sortPop: function() {
+		this.pop.sortObject('rank');
+		return this;
+	},
+
+	paretoOpt: function() {
 		//update ranks in pop
-		var i, j;
+		var i,
+			j;
 		//Pareto opitimility
 		for (i = 0; i < this.pop.length; i++) {
 			this.pop[i].rank = 1;
@@ -78,17 +74,28 @@ module.exports = {
 				}
 			}
 		}
-		this.pop.sortObject('rank');
+
 		return this;
 	},
 
-	tournament: function(popSize, poolSize) {
+	tournament: function(popSize, poolSize, currentGen) {
 		var eliteRate = 0.4,
 			eliteSize = Math.floor(popSize * eliteRate),
 			r,
 			i;
 
 		this.sortPop();
+// console.log(this.pop);
+		for (i = 0; i < popSize; i++) {
+			if (this.pop[i].rank > 1) break;
+			// console.log('-----------------');
+			// console.log(this.pop[i].c, this.pop[i].f);
+			// if (this.pop[i].f[0] > this.objMax[0]) this.objMax[0] = this.pop[i].f[0];
+			// if (this.pop[i].f[1] > this.objMax[1]) this.objMax[1] = this.pop[i].f[1];
+			// if (this.pop[i].f[2] > this.objMax[2]) this.objMax[2] = this.pop[i].f[2];
+			// if (this.pop[i].f[3] > this.objMax[3]) this.objMax[3] = this.pop[i].f[3];
+			this.toExcel.push([currentGen].concat(this.pop[i].f));
+		}
 
 		this.pool = [];
 		for (i = 0; i < poolSize; i++) {
@@ -120,7 +127,7 @@ module.exports = {
 				go.crossover(c1, c2, this.seqLen, size);
 			pm = Math.random();
 			if (pm <= mutationProb) {
-				go.mutation(c1, this.seqLen, size).mutation(c2, this.seqLen, size);
+				go.mutation(c1, this.seqLen, size, this.isOpt).mutation(c2, this.seqLen, size, this.isOpt);
 			}
 			
 			newPop.push({
@@ -135,6 +142,10 @@ module.exports = {
 		}
 
 		this.pop = newPop;
+
+		this.paretoOpt();
+
+		return this;
 	},
 
 	calFitness: function(c, test) {
@@ -162,6 +173,7 @@ module.exports = {
 			nextId = c[i];
 			if (c[n + 2 + nextId] == 1) {
 				exactWaste += this.data[nextId][3];
+if (test) console.log(nextId, exactWaste);
 				dist = Math.sqrt( Math.pow((this.data[preId][1] - this.data[nextId][1]), 2) + Math.pow((this.data[preId][2] - this.data[nextId][2]), 2) );
 				transportation += dist;
 				rLen += dist;
@@ -189,7 +201,7 @@ module.exports = {
 		}
 		//std of workload
 		routeNum = routeLens.length;
-		if (test) console.log('routeLens: ', routeLens);
+// if (test) console.log('routeLens: ', routeLens);
 		avgOfTrans = transportation / routeNum;
 		for (i = 0; i < routeNum; i++) {
 			workload += Math.pow( (routeLens[i] - avgOfTrans), 2);

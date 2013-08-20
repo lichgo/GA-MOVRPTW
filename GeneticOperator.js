@@ -1,5 +1,9 @@
 exports.crossover = function(c1, c2, n, m) {	//n: all nodes excep two 0s at ends, m: problem size
 	//Generate 2 points for 2 sectors
+// console.log('------------------------');
+// console.log(c1);
+// console.log(c2);
+
 	var p1s1 = 1 + Math.floor(Math.random() * n),
 		p2s1 = 1 + Math.floor(Math.random() * n),
 		p1s2 = n + 3 + Math.floor(Math.random() * m),
@@ -22,19 +26,23 @@ exports.crossover = function(c1, c2, n, m) {	//n: all nodes excep two 0s at ends
 		p2s2 = temp;
 	}
 
-// console.log(p1s1, p2s1, p1s2, p2s2);
+// console.log('----', p1s1, p2s1, p1s2, p2s2);
 
 	//Swap the first sector
 	numGenes = p2s1 - p1s1 + 1;
 	count = 0;
 	for (i = p1s1; i <= p2s1; i++) {
-		hashGenes[c1[i]] = true;
+		if (typeof hashGenes[c1[i]] == 'undefined')
+			hashGenes[c1[i]] = 1;
+		else
+			hashGenes[c1[i]]++;
 	}
 	for (i = 1; i < n + 1; i++) {
-		if (hashGenes[c2[i]] === true) {
+		if (typeof hashGenes[c2[i]] != 'undefined' && hashGenes[c2[i]] > 0) {
 			temp = c1[p1s1 + count];
 			c1[p1s1 + count] = c2[i];
 			c2[i] = temp;
+			hashGenes[c2[i]]--;
 			if (++count == numGenes) break;
 		}
 	}
@@ -46,10 +54,14 @@ exports.crossover = function(c1, c2, n, m) {	//n: all nodes excep two 0s at ends
 		c2[i] = temp;
 	}
 
+// console.log(c1);
+// console.log(c2);
+// console.log('------------------------');
+
 	return this;
 };
 
-exports.mutation = function(c, n, m) {
+exports.mutation = function(c, n, m, isOpt) {
 	var p1s1 = 1 + Math.floor(Math.random() * n),
 		p2s1 = 1 + Math.floor(Math.random() * n),
 		p1s2 = n + 3 + Math.floor(Math.random() * m),
@@ -65,7 +77,8 @@ exports.mutation = function(c, n, m) {
 	}
 
 	//Mutate the second sector
-	c[p1s2] = 1 - c[p1s2];
+	if (isOpt)
+		c[p1s2] = 1 - c[p1s2];
 
 	return this;
 };

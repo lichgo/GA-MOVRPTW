@@ -1,8 +1,8 @@
 module.exports = {
-	size: 5,
-	generations: 1,
-	popSize: 5,
-	poolSize: 3,
-	crossoverProb: 0.5,
+	size: 20,
+	generations: 100,
+	popSize: 50,
+	poolSize: 20,
+	crossoverProb: 0.8,
 	mutationProb: 0.05
 };
