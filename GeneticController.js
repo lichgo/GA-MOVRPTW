@@ -11,7 +11,7 @@ module.exports = {
 	totalWaste: undefined,
 	capacity: undefined,
 	toExcel: [],
-	isOpt: false,
+	isOpt: undefined,
 	// objMax: [-1, -1, -1, -1],
 
 	importData: function(size) {
@@ -25,6 +25,7 @@ module.exports = {
 		var initChromosome = IMPACT.init(),
 			r,
 			c,
+			j,
 			i = 0;
 
 		this.seqLen = IMPACT.getSeqLen();
@@ -34,7 +35,11 @@ module.exports = {
 		for (; i < popSize; i++) {
 			r = Math.floor(Math.random() * popSize);
 			c = copyC(initChromosome[r]);
-			// go.mutation(c, this.seqLen, size, isOpt);
+			//For opt
+			for (j = 0; j < 8; j++) {
+				go.mutation(c, this.seqLen, size, this.isOpt);
+			}
+			//
 			this.pop.push({
 				c: copyC(c),
 				f: this.calFitness(c)
@@ -51,14 +56,14 @@ module.exports = {
 		return this;
 	},
 
-	paretoOpt: function() {
+	paretoOpt: function(popSize) {
 		//update ranks in pop
 		var i,
 			j;
 		//Pareto opitimility
-		for (i = 0; i < this.pop.length; i++) {
+		for (i = 0; i < popSize; i++) {
 			this.pop[i].rank = 1;
-			for (j = 0; j < this.pop.length; j++) {
+			for (j = 0; j < popSize; j++) {
 				if (this.pop[j].f[0] <= this.pop[i].f[0] &&
 					this.pop[j].f[1] <= this.pop[i].f[1] &&
 					this.pop[j].f[2] <= this.pop[i].f[2] &&
@@ -75,6 +80,10 @@ module.exports = {
 			}
 		}
 
+		// this.sortPop();
+		// for (i = 0; i < popSize; i++) {
+		// 	console.log(this.pop[i].f, this.pop[i].rank);
+		// }
 		return this;
 	},
 
@@ -94,7 +103,8 @@ module.exports = {
 			// if (this.pop[i].f[1] > this.objMax[1]) this.objMax[1] = this.pop[i].f[1];
 			// if (this.pop[i].f[2] > this.objMax[2]) this.objMax[2] = this.pop[i].f[2];
 			// if (this.pop[i].f[3] > this.objMax[3]) this.objMax[3] = this.pop[i].f[3];
-			this.toExcel.push([currentGen].concat(this.pop[i].f));
+			// this.toExcel.push([currentGen].concat(this.pop[i].f));
+			this.toExcel.push(this.pop[i].f);
 		}
 
 		this.pool = [];
@@ -143,7 +153,7 @@ module.exports = {
 
 		this.pop = newPop;
 
-		this.paretoOpt();
+		this.paretoOpt(popSize);
 
 		return this;
 	},
@@ -173,7 +183,7 @@ module.exports = {
 			nextId = c[i];
 			if (c[n + 2 + nextId] == 1) {
 				exactWaste += this.data[nextId][3];
-if (test) console.log(nextId, exactWaste);
+// if (test) console.log(nextId, exactWaste);
 				dist = Math.sqrt( Math.pow((this.data[preId][1] - this.data[nextId][1]), 2) + Math.pow((this.data[preId][2] - this.data[nextId][2]), 2) );
 				transportation += dist;
 				rLen += dist;
@@ -212,7 +222,7 @@ if (test) console.log(nextId, exactWaste);
 
 		return [
 			Math.round(transportation * 100) / 100, 
-			Math.round(workload * 100) / 100, 
+			Math.round(Math.sqrt(workload) * 100) / 100, 
 			Math.round(delay * 100) / 100, 
 			Math.round(remainingWaste * 100) / 100
 		];

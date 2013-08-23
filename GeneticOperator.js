@@ -39,12 +39,13 @@ exports.crossover = function(c1, c2, n, m) {	//n: all nodes excep two 0s at ends
 	}
 	for (i = 1; i < n + 1; i++) {
 		if (typeof hashGenes[c2[i]] != 'undefined' && hashGenes[c2[i]] > 0) {
+			hashGenes[c2[i]]--;
 			temp = c1[p1s1 + count];
 			c1[p1s1 + count] = c2[i];
 			c2[i] = temp;
-			hashGenes[c2[i]]--;
 			if (++count == numGenes) break;
 		}
+// console.log(hashGenes);
 	}
 
 	//Swap the second sector

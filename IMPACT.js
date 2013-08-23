@@ -1,6 +1,6 @@
 module.exports = {
 	seqLen: 27,
-	isOpt: false,
+	isOpt: true,
 
 	init: function() {
 		return [
