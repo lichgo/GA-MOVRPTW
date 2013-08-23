@@ -103,8 +103,8 @@ module.exports = {
 			// if (this.pop[i].f[1] > this.objMax[1]) this.objMax[1] = this.pop[i].f[1];
 			// if (this.pop[i].f[2] > this.objMax[2]) this.objMax[2] = this.pop[i].f[2];
 			// if (this.pop[i].f[3] > this.objMax[3]) this.objMax[3] = this.pop[i].f[3];
-			// this.toExcel.push([currentGen].concat(this.pop[i].f));
-			this.toExcel.push(this.pop[i].f);
+			this.toExcel.push([currentGen].concat(this.pop[i].f));
+			// this.toExcel.push(this.pop[i].f);
 		}
 
 		this.pool = [];
